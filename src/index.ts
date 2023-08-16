@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client"
+import cors from "cors"
 import dotenv from "dotenv"
 import express, { Express, Request, Response } from "express"
 
@@ -15,6 +16,7 @@ const port = process.env.PORT || 5000
 const prisma = new PrismaClient()
 
 app.use(express.json())
+app.use(cors())
 
 app.get("/", (req: Request, res: Response) => {
   const { message } = req.body
