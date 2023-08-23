@@ -5,7 +5,7 @@ import express, { Express, Request, Response } from "express"
 
 import { CustomerData } from "./interfaces/CustomerData"
 import { PaymentData } from "./interfaces/PaymentData"
-import { SnackData } from "./interfaces/SnackData"
+import { ProductData } from "./interfaces/ProductData"
 
 import CheckoutService from "./services/CheckoutService"
 
@@ -26,21 +26,21 @@ app.get("/", (req: Request, res: Response) => {
   res.send({ message })
 })
 
-app.get("/snacks", async (req: Request, res: Response) => {
-  const { snack } = req.query
+app.get("/products", async (req: Request, res: Response) => {
+  const { product } = req.query
 
-  if (!snack) return res.status(400).send({ error: "Snack is required" })
+  if (!product) return res.status(400).send({ error: "Product is required" })
 
-  // SELECT * FROM Snack WHERE snack = 'drink'
-  const snacks = await prisma.snack.findMany({
+  // SELECT * FROM Product WHERE product = 'drink'
+  const products = await prisma.product.findMany({
     where: {
-      snack: {
-        equals: snack as string,
+      product: {
+        equals: product as string,
       },
     },
   })
 
-  res.send(snacks)
+  res.send(products)
 })
 
 app.get("/orders/:id", async (req: Request, res: Response) => {
@@ -50,7 +50,7 @@ app.get("/orders/:id", async (req: Request, res: Response) => {
     where: {
       id: +id,
     },
-    include: { customer: true, orderItems: { include: { snack: true } } },
+    include: { customer: true, orderItems: { include: { product: true } } },
   })
 
   if (!order) return res.status(404).send({ error: "Order not found" })
@@ -60,7 +60,7 @@ app.get("/orders/:id", async (req: Request, res: Response) => {
 
 interface CheckoutRequest extends Request {
   body: {
-    cart: SnackData[]
+    cart: ProductData[]
     customer: CustomerData
     payment: PaymentData
   }

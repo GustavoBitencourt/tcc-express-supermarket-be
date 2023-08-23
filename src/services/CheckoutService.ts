@@ -2,7 +2,7 @@ import { Customer, Order, PrismaClient } from "@prisma/client"
 
 import { CustomerData } from "../interfaces/CustomerData"
 import { PaymentData } from "../interfaces/PaymentData"
-import { SnackData } from "../interfaces/SnackData"
+import { ProductData } from "../interfaces/ProductData"
 import PaymentService from "./PaymentService"
 
 export default class CheckoutService {
@@ -14,37 +14,37 @@ export default class CheckoutService {
   }
 
   async process(
-    cart: SnackData[],
+    cart: ProductData[],
     customer: CustomerData,
     payment: PaymentData
   ): Promise<{ id: number; transactionId: string; status: string }> {
-    // TODO: "puxar" os dados de snacks do BD
+    // TODO: "puxar" os dados de products do BD
     // in: [1,2,3,4]
-    const snacks = await this.prisma.snack.findMany({
+    const products = await this.prisma.product.findMany({
       where: {
         id: {
-          in: cart.map((snack) => snack.id),
+          in: cart.map((product) => product.id),
         },
       },
     })
-    // console.log(`snacks`, snacks)
+    // console.log(`products`, products)
 
-    const snacksInCart = snacks.map<SnackData>((snack) => ({
-      ...snack,
-      price: Number(snack.price),
-      quantity: cart.find((item) => item.id === snack.id)?.quantity!,
+    const productsInCart = products.map<ProductData>((product) => ({
+      ...product,
+      price: Number(product.price),
+      quantity: cart.find((item) => item.id === product.id)?.quantity!,
       subTotal:
-        cart.find((item) => item.id === snack.id)?.quantity! *
-        Number(snack.price),
+        cart.find((item) => item.id === product.id)?.quantity! *
+        Number(product.price),
     }))
-    // console.log(`snacksInCart`, snacksInCart)
+    // console.log(`productsInCart`, productsInCart)
 
     // TODO: registrar os dados do cliente no BD
     const customerCreated = await this.createCustomer(customer)
     // console.log(`customerCreated`, customerCreated)
 
     // TODO: criar uma order orderitem
-    let orderCreated = await this.createOrder(snacksInCart, customerCreated)
+    let orderCreated = await this.createOrder(productsInCart, customerCreated)
     // console.log(`orderCreated`, orderCreated)
 
     // TODO: processar o pagamento
@@ -80,10 +80,10 @@ export default class CheckoutService {
   }
 
   private async createOrder(
-    snacksInCart: SnackData[],
+    productsInCart: ProductData[],
     customer: Customer
   ): Promise<Order> {
-    const total = snacksInCart.reduce((acc, snack) => acc + snack.subTotal, 0)
+    const total = productsInCart.reduce((acc, product) => acc + product.subTotal, 0)
     const orderCreated = await this.prisma.order.create({
       data: {
         total,
@@ -92,17 +92,17 @@ export default class CheckoutService {
         },
         orderItems: {
           createMany: {
-            data: snacksInCart.map((snack) => ({
-              snackId: snack.id,
-              quantity: snack.quantity,
-              subTotal: snack.subTotal,
+            data: productsInCart.map((product) => ({
+              productId: product.id,
+              quantity: product.quantity,
+              subTotal: product.subTotal,
             })),
           },
         },
       },
       include: {
         customer: true,
-        orderItems: { include: { snack: true } },
+        orderItems: { include: { product: true } },
       },
     })
 

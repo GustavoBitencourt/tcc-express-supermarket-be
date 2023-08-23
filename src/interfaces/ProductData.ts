@@ -1,9 +1,10 @@
-export interface SnackData {
+export interface ProductData {
   id: number
-  snack: string
+  product: string
   name: string
   description: string
   image: string
+  imageMap: string
   price: number
   quantity: number
   subTotal: number
