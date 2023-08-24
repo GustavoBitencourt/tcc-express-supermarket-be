@@ -16,7 +16,7 @@ const products = [
     name: "Esponja de Cozinha",
     description: "Esponja de alta qualidade para limpeza de superfícies.",
     price: 2,
-    image: "https://i.imgur.com/8IcYTI3.png",
+    image: "https://i.imgur.com/xEaS13Q.png",
     imageMap: "#",
   },
   {
