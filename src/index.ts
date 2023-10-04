@@ -8,6 +8,7 @@ import { PaymentData } from "./interfaces/PaymentData";
 import { ProductData } from "./interfaces/ProductData";
 
 import CheckoutService from "./services/CheckoutService";
+import authRouter from "./routes/AuthRoutes";
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ const prisma = new PrismaClient();
 
 app.use(express.json());
 app.use(cors());
+app.use("/auth", authRouter);
 
 app.get("/", (req: Request, res: Response) => {
   const { message } = req.body;

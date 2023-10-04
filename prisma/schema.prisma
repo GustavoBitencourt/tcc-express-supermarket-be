@@ -32,13 +32,14 @@ model Customer {
   email        String   @unique @db.VarChar(255)
   mobile       String   @db.VarChar(255)
   document     String   @db.VarChar(255)
-  zipCode      String   @db.VarChar(255)
-  street       String   @db.VarChar(255)
-  number       String   @db.VarChar(255)
+  zipCode      String?  @db.VarChar(255)
+  street       String?  @db.VarChar(255)
+  number       String?  @db.VarChar(255)
   complement   String?  @db.VarChar(255)
-  neighborhood String   @db.VarChar(255)
-  city         String   @db.VarChar(255)
-  state        String   @db.Char(2)
+  neighborhood String?  @db.VarChar(255)
+  city         String?  @db.VarChar(255)
+  state        String?  @db.Char(2)
+  password     String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   orders       Order[]
