@@ -2,7 +2,7 @@ import { PrismaClient, Customer } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { CustomerData } from "../interfaces/CustomerData";
 
-export default class AuthService {
+export default class RegisterService {
   private prisma: PrismaClient;
 
   constructor() {
