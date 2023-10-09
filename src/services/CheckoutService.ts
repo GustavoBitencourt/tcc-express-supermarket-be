@@ -1,16 +1,16 @@
-import { Customer, Order, PrismaClient } from "@prisma/client"
+import { Customer, Order, PrismaClient } from "@prisma/client";
 
-import { CustomerData } from "../interfaces/CustomerData"
-import { PaymentData } from "../interfaces/PaymentData"
-import { ProductData } from "../interfaces/ProductData"
-import PaymentService from "./PaymentService"
+import { CustomerData } from "../interfaces/CustomerData";
+import { PaymentData } from "../interfaces/PaymentData";
+import { ProductData } from "../interfaces/ProductData";
+import PaymentService from "./PaymentService";
 
 export default class CheckoutService {
-  private prisma: PrismaClient
+  private prisma: PrismaClient;
 
   // new CheckoutService()
   constructor() {
-    this.prisma = new PrismaClient()
+    this.prisma = new PrismaClient();
   }
 
   async process(
@@ -26,8 +26,7 @@ export default class CheckoutService {
           in: cart.map((product) => product.id),
         },
       },
-    })
-    // console.log(`products`, products)
+    });
 
     const productsInCart = products.map<ProductData>((product) => ({
       ...product,
@@ -36,15 +35,20 @@ export default class CheckoutService {
       subTotal:
         cart.find((item) => item.id === product.id)?.quantity! *
         Number(product.price),
-    }))
-    // console.log(`productsInCart`, productsInCart)
+    }));
 
-    // TODO: registrar os dados do cliente no BD
-    const customerCreated = await this.createCustomer(customer)
-    // console.log(`customerCreated`, customerCreated)
+    const customerCreated = await this.createCustomer(customer);
 
+    if (customerCreated === null) {
+      // Se o resultado for null, significa que o usuário não existe
+      return {
+        id: 0,
+        transactionId: "",
+        status: "Usuário não existe",
+      };
+    }
     // TODO: criar uma order orderitem
-    let orderCreated = await this.createOrder(productsInCart, customerCreated)
+    let orderCreated = await this.createOrder(productsInCart, customerCreated);
     // console.log(`orderCreated`, orderCreated)
 
     // TODO: processar o pagamento
@@ -52,7 +56,7 @@ export default class CheckoutService {
       orderCreated,
       customerCreated,
       payment
-    )
+    );
 
     orderCreated = await this.prisma.order.update({
       where: { id: orderCreated.id },
@@ -60,30 +64,44 @@ export default class CheckoutService {
         transactionId,
         status,
       },
-    })
+    });
 
     return {
       id: orderCreated.id,
       transactionId: orderCreated.transactionId!,
       status: orderCreated.status,
-    }
+    };
   }
 
-  private async createCustomer(customer: CustomerData): Promise<Customer> {
-    const customerCreated = await this.prisma.customer.upsert({
+  private async createCustomer(
+    customer: CustomerData
+  ): Promise<Customer | null> {
+    const customerCreated = await this.prisma.customer.findUnique({
       where: { email: customer.email },
-      update: customer,
-      create: customer,
-    })
+    });
 
-    return customerCreated
+    if (customerCreated) {
+      // Cliente existe, então atualize os dados
+      const updatedCustomer = await this.prisma.customer.update({
+        where: { email: customer.email },
+        data: customer,
+      });
+
+      return updatedCustomer;
+    } else {
+      // Cliente não existe, retorne null
+      return null;
+    }
   }
 
   private async createOrder(
     productsInCart: ProductData[],
     customer: Customer
   ): Promise<Order> {
-    const total = productsInCart.reduce((acc, product) => acc + product.subTotal, 0)
+    const total = productsInCart.reduce(
+      (acc, product) => acc + product.subTotal,
+      0
+    );
     const orderCreated = await this.prisma.order.create({
       data: {
         total,
@@ -104,8 +122,8 @@ export default class CheckoutService {
         customer: true,
         orderItems: { include: { product: true } },
       },
-    })
+    });
 
-    return orderCreated
+    return orderCreated;
   }
 }

@@ -27,7 +27,7 @@ export default class AuthService {
 
   generateAuthToken(userId: number): string {
     const token = jwt.sign({ userId }, process.env.JWT_SECRET || "", {
-      expiresIn: "1h", // Defina o tempo de expiração do token
+      expiresIn: "1h",
     });
     return token;
   }
