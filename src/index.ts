@@ -8,6 +8,7 @@ import { PaymentData } from "./interfaces/PaymentData";
 import { ProductData } from "./interfaces/ProductData";
 
 import CheckoutService from "./services/CheckoutService";
+import GetCustomerService from "./services/GetCustomerService";
 import authRouter from "./routes/AuthRoutes";
 
 dotenv.config();
@@ -81,6 +82,49 @@ app.post("/checkout", async (req: CheckoutRequest, res: Response) => {
   );
 
   res.send(orderCreated);
+});
+
+app.get("/customers/:id?", async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const customerId = id ? parseInt(id, 10) : undefined;
+    if (customerId && isNaN(customerId)) {
+      res.status(400).send({ error: "Invalid customer ID" });
+      return;
+    }
+
+    const getCustomerService = new GetCustomerService();
+    const customers = await getCustomerService.getCustomers(customerId);
+
+    if (customers.length === 0) {
+      res.status(404).send({ error: "Customer(s) not found" });
+      return;
+    }
+
+    res.send(customers);
+  } catch (error) {
+    console.error("Error fetching customer(s):", error);
+    res.status(500).send({ error: "Failed to fetch customer(s)" });
+  }
+});
+
+app.put("/customer/:id", async (req: Request, res: Response) => {
+  const { id } = req.params; // ID do usuário a ser editado
+  const updatedCustomerData = req.body; // Novos dados do perfil a serem atualizados
+
+  try {
+    // Lógica para atualizar o perfil do usuário com os novos dados
+    const updatedCustomer = await prisma.customer.update({
+      where: { id: +id },
+      data: updatedCustomerData,
+    });
+
+    res.send(updatedCustomer);
+  } catch (error) {
+    console.error("Error updating customer:", error);
+    res.status(500).send({ error: "Failed to update customer" });
+  }
 });
 
 app.listen(port, () => {
