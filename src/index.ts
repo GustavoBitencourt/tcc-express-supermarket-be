@@ -9,6 +9,7 @@ import { ProductData } from "./interfaces/ProductData";
 
 import CheckoutService from "./services/CheckoutService";
 import GetCustomerService from "./services/GetCustomerService";
+import GetAllCustomerService from "./services/GetAllCustomersService";
 import authRouter from "./routes/AuthRoutes";
 
 dotenv.config();
@@ -84,28 +85,41 @@ app.post("/checkout", async (req: CheckoutRequest, res: Response) => {
   res.send(orderCreated);
 });
 
-app.get("/customers/:id?", async (req: Request, res: Response) => {
+app.get("/customers", async (req: Request, res: Response) => {
+  try {
+    const getCustomerService = new GetAllCustomerService();
+    const customers = await getCustomerService.getAllCustomers();
+
+    res.send(customers);
+  } catch (error) {
+    console.error("Error fetching customers:", error);
+    res.status(500).send({ error: "Failed to fetch customers" });
+  }
+});
+
+app.get("/customers/:id", async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const customerId = id ? parseInt(id, 10) : undefined;
-    if (customerId && isNaN(customerId)) {
+    const customerId = parseInt(id, 10);
+
+    if (isNaN(customerId)) {
       res.status(400).send({ error: "Invalid customer ID" });
       return;
     }
 
     const getCustomerService = new GetCustomerService();
-    const customers = await getCustomerService.getCustomers(customerId);
+    const customer = await getCustomerService.getCustomerById(customerId);
 
-    if (customers.length === 0) {
-      res.status(404).send({ error: "Customer(s) not found" });
+    if (!customer) {
+      res.status(404).send({ error: "Customer not found" });
       return;
     }
 
-    res.send(customers);
+    res.send(customer);
   } catch (error) {
-    console.error("Error fetching customer(s):", error);
-    res.status(500).send({ error: "Failed to fetch customer(s)" });
+    console.error("Error fetching customer:", error);
+    res.status(500).send({ error: "Failed to fetch customer" });
   }
 });
 
