@@ -6,6 +6,7 @@ import express, { Express, Request, Response } from "express";
 import { CustomerData } from "./interfaces/CustomerData";
 import { PaymentData } from "./interfaces/PaymentData";
 import { ProductData } from "./interfaces/ProductData";
+import ProductService from "./services/ProductService";
 
 import CheckoutService from "./services/CheckoutService";
 import GetCustomerService from "./services/GetCustomerService";
@@ -17,6 +18,7 @@ dotenv.config();
 const app: Express = express();
 const port = process.env.PORT || 5000;
 const prisma = new PrismaClient();
+const productService = new ProductService();
 
 app.use(express.json());
 app.use(cors());
@@ -48,6 +50,70 @@ app.get("/products", async (req: Request, res: Response) => {
   // Se o parâmetro "product" não estiver presente, retorna todos os produtos
   const allProducts = await prisma.product.findMany();
   res.send(allProducts);
+});
+
+app.get("/allproducts", async (req: Request, res: Response) => {
+  try {
+    const allProducts = await prisma.product.findMany();
+    res.send(allProducts);
+  } catch (error) {
+    console.error("Error fetching all products:", error);
+    res.status(500).send({ error: "Failed to fetch all products" });
+  }
+});
+
+
+app.post("/products", async (req: Request, res: Response) => {
+  try {
+    const productData = req.body;
+    const newProduct = await productService.registerProduct(productData);
+    res.json(newProduct);
+  } catch (error) {
+    console.error("Error creating product:", error);
+    res.status(500).json({ error: "Failed to create product" });
+  }
+});
+
+
+class ProductError extends Error {}
+
+app.put("/products/:id", async (req: Request, res: Response) => {
+  try {
+    const productId = parseInt(req.params.id, 10);
+
+    if (isNaN(productId)) {
+      return res.status(400).json({ error: "Invalid product ID" });
+    }
+
+    const productData = req.body;
+    const updatedProduct = await productService.updateProduct(productId, productData);
+
+    res.json(updatedProduct);
+  } catch (error: unknown) {
+    if (error instanceof ProductError && error.message === "Product not found") {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    console.error("Error updating product:", error);
+    res.status(500).json({ error: "Failed to update product" });
+  }
+});
+
+// Rota para excluir um produto pelo ID
+app.delete("/products/:id", async (req: Request, res: Response) => {
+  try {
+    const productId = parseInt(req.params.id, 10);
+
+    if (isNaN(productId)) {
+      return res.status(400).json({ error: "Invalid product ID" });
+    }
+
+    await productService.deleteProduct(productId);
+    res.json({ message: "Product deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    res.status(500).json({ error: "Failed to delete product" });
+  }
 });
 
 app.get("/orders/:id", async (req: Request, res: Response) => {

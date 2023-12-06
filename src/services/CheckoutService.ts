@@ -30,6 +30,7 @@ export default class CheckoutService {
 
     const productsInCart = products.map<ProductData>((product) => ({
       ...product,
+      description: product.description ?? "",
       price: Number(product.price),
       quantity: cart.find((item) => item.id === product.id)?.quantity!,
       subTotal:
