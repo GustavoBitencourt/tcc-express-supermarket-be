@@ -116,20 +116,29 @@ app.delete("/products/:id", async (req: Request, res: Response) => {
   }
 });
 
-app.get("/orders/:id", async (req: Request, res: Response) => {
+app.get("/orders/:id?", async (req: Request, res: Response) => {
   const { id } = req.params;
 
-  const order = await prisma.order.findUnique({
-    where: {
-      id: +id,
-    },
-    include: { customer: true, orderItems: { include: { product: true } } },
-  });
+  if (id) {
+    const order = await prisma.order.findUnique({
+      where: {
+        id: +id,
+      },
+      include: { customer: true, orderItems: { include: { product: true } } },
+    });
 
-  if (!order) return res.status(404).send({ error: "Order not found" });
+    if (!order) return res.status(404).send({ error: "Order not found" });
 
-  res.send(order);
+    res.send(order);
+  } else {
+    const orders = await prisma.order.findMany({
+      include: { customer: true, orderItems: { include: { product: true } } },
+    });
+
+    res.send(orders);
+  }
 });
+
 
 interface CheckoutRequest extends Request {
   body: {
