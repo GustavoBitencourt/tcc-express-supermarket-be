@@ -41,6 +41,8 @@ model Customer {
   city         String?  @db.VarChar(255)
   state        String?  @db.Char(2)
   password     String
+  resetCode        String?
+  resetCodeExpires DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   orders       Order[]

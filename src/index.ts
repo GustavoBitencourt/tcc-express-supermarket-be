@@ -11,6 +11,7 @@ import ProductService from "./services/ProductService";
 import CheckoutService from "./services/CheckoutService";
 import GetCustomerService from "./services/GetCustomerService";
 import GetAllCustomerService from "./services/GetAllCustomersService";
+import ForgotPasswordService from "./services/ForgotPasswordService";
 import authRouter from "./routes/AuthRoutes";
 
 dotenv.config();
@@ -62,7 +63,6 @@ app.get("/allproducts", async (req: Request, res: Response) => {
   }
 });
 
-
 app.post("/products", async (req: Request, res: Response) => {
   try {
     const productData = req.body;
@@ -73,7 +73,6 @@ app.post("/products", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to create product" });
   }
 });
-
 
 class ProductError extends Error {}
 
@@ -86,11 +85,17 @@ app.put("/products/:id", async (req: Request, res: Response) => {
     }
 
     const productData = req.body;
-    const updatedProduct = await productService.updateProduct(productId, productData);
+    const updatedProduct = await productService.updateProduct(
+      productId,
+      productData
+    );
 
     res.json(updatedProduct);
   } catch (error: unknown) {
-    if (error instanceof ProductError && error.message === "Product not found") {
+    if (
+      error instanceof ProductError &&
+      error.message === "Product not found"
+    ) {
       return res.status(404).json({ error: "Product not found" });
     }
 
@@ -138,7 +143,6 @@ app.get("/orders/:id?", async (req: Request, res: Response) => {
     res.send(orders);
   }
 });
-
 
 interface CheckoutRequest extends Request {
   body: {
@@ -213,6 +217,34 @@ app.put("/customer/:id", async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error updating customer:", error);
     res.status(500).send({ error: "Failed to update customer" });
+  }
+});
+
+const forgotPasswordService = new ForgotPasswordService();
+
+app.post("/forgot-password", async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  try {
+    // lógica para verificar se o usuário já solicitou recentemente
+    await forgotPasswordService.sendResetCode(email);
+    res.json({ message: "Reset code sent successfully" });
+  } catch (error) {
+    console.error("Error sending reset code:", error);
+    res.status(500).json({ error: "Failed to send reset code" });
+  }
+});
+
+app.post("/reset-password", async (req: Request, res: Response) => {
+  const { email, code, newPassword } = req.body;
+
+  try {
+    // lógica para verificar o código e redefinir a senha
+    await forgotPasswordService.resetPassword(email, code, newPassword);
+    res.json({ message: "Password reset successfully" });
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    res.status(500).json({ error: "Failed to reset password" });
   }
 });
 
