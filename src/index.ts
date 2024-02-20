@@ -226,8 +226,13 @@ app.post("/forgot-password", async (req: Request, res: Response) => {
   const { email } = req.body;
 
   try {
-    // lógica para verificar se o usuário já solicitou recentemente
-    await forgotPasswordService.sendResetCode(email);
+    const resetCode = await forgotPasswordService.sendResetCode(email);
+
+    if (resetCode === null) {
+      // Usuário não encontrado, retorna 404 (Not Found)
+      return res.status(404).json({ error: "User not found" });
+    }
+
     res.json({ message: "Reset code sent successfully" });
   } catch (error) {
     console.error("Error sending reset code:", error);

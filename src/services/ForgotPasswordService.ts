@@ -13,13 +13,13 @@ export default class ForgotPasswordService {
     this.prisma = new PrismaClient();
   }
 
-  async sendResetCode(email: string): Promise<void> {
+  async sendResetCode(email: string): Promise<void | null> {
     const user = await this.prisma.customer.findUnique({
       where: { email },
     });
 
     if (!user) {
-      throw new Error("User not found");
+      return null;
     }
 
     const resetCode = uuidv4().slice(0, 6);

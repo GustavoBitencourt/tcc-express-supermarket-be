@@ -15,7 +15,7 @@ router.post("/register", async (req, res) => {
     res.json(newUser);
   } catch (error) {
     if (error instanceof Error) {
-      // Verifique se 'error' é uma instância de 'Error'
+      // Verifica se 'error' é uma instância de 'Error'
       res.status(400).json({ error: error.message });
     } else {
       // Se não for uma instância de 'Error', retorne um erro genérico
