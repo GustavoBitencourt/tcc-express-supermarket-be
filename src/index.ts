@@ -104,6 +104,30 @@ app.put("/products/:id", async (req: Request, res: Response) => {
   }
 });
 
+// Rota para buscar um produto pelo ID
+app.get("/product/:id", async (req: Request, res: Response) => {
+  try {
+    const productId = parseInt(req.params.id, 10);
+
+    if (isNaN(productId)) {
+      return res.status(400).json({ error: "Invalid product ID" });
+    }
+
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    res.json(product);
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    res.status(500).json({ error: "Failed to fetch product" });
+  }
+});
+
 // Rota para excluir um produto pelo ID
 app.delete("/products/:id", async (req: Request, res: Response) => {
   try {
