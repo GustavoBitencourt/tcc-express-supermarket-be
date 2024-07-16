@@ -36,7 +36,6 @@ app.get("/", (req: Request, res: Response) => {
 app.get("/products", async (req: Request, res: Response) => {
   const { product } = req.query;
 
-  // Verifica se o parâmetro "product" está presente na consulta
   if (product) {
     const products = await prisma.product.findMany({
       where: {
@@ -48,7 +47,6 @@ app.get("/products", async (req: Request, res: Response) => {
     return res.send(products);
   }
 
-  // Se o parâmetro "product" não estiver presente, retorna todos os produtos
   const allProducts = await prisma.product.findMany();
   res.send(allProducts);
 });
@@ -104,7 +102,6 @@ app.put("/products/:id", async (req: Request, res: Response) => {
   }
 });
 
-// Rota para buscar um produto pelo ID
 app.get("/product/:id", async (req: Request, res: Response) => {
   try {
     const productId = parseInt(req.params.id, 10);
@@ -128,7 +125,6 @@ app.get("/product/:id", async (req: Request, res: Response) => {
   }
 });
 
-// Rota para excluir um produto pelo ID
 app.delete("/products/:id", async (req: Request, res: Response) => {
   try {
     const productId = parseInt(req.params.id, 10);
@@ -227,11 +223,10 @@ app.get("/customers/:id", async (req: Request, res: Response) => {
 });
 
 app.put("/customer/:id", async (req: Request, res: Response) => {
-  const { id } = req.params; // ID do usuário a ser editado
-  const updatedCustomerData = req.body; // Novos dados do perfil a serem atualizados
+  const { id } = req.params; 
+  const updatedCustomerData = req.body; 
 
   try {
-    // Lógica para atualizar o perfil do usuário com os novos dados
     const updatedCustomer = await prisma.customer.update({
       where: { id: +id },
       data: updatedCustomerData,
@@ -253,7 +248,6 @@ app.post("/forgot-password", async (req: Request, res: Response) => {
     const resetCode = await forgotPasswordService.sendResetCode(email);
 
     if (resetCode === null) {
-      // Usuário não encontrado, retorna 404 (Not Found)
       return res.status(404).json({ error: "User not found" });
     }
 
@@ -268,12 +262,37 @@ app.post("/reset-password", async (req: Request, res: Response) => {
   const { email, code, newPassword } = req.body;
 
   try {
-    // lógica para verificar o código e redefinir a senha
     await forgotPasswordService.resetPassword(email, code, newPassword);
     res.json({ message: "Password reset successfully" });
   } catch (error) {
     console.error("Error resetting password:", error);
     res.status(500).json({ error: "Failed to reset password" });
+  }
+});
+
+app.get("/orders/customerId/:id", async (req: Request, res: Response) => {
+  const { id } = req.params;
+  
+  try {
+    const customerId = parseInt(id, 10);
+
+    if (isNaN(customerId)) {
+      return res.status(400).json({ error: "Invalid customer ID" });
+    }
+
+    const orders = await prisma.order.findMany({
+      where: { customerId: customerId },
+      include: { customer: true, orderItems: { include: { product: true } } },
+    });
+
+    if (orders.length === 0) {
+      return res.status(404).json({ message: "No orders found for this customer" });
+    }
+
+    res.json(orders);
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ error: "Failed to fetch orders" });
   }
 });
 
