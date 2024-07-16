@@ -283,6 +283,7 @@ app.get("/orders/customerId/:id", async (req: Request, res: Response) => {
     const orders = await prisma.order.findMany({
       where: { customerId: customerId },
       include: { customer: true, orderItems: { include: { product: true } } },
+      orderBy: { updatedAt: 'desc' },
     });
 
     if (orders.length === 0) {
