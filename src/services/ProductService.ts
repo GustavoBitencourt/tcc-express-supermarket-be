@@ -9,18 +9,19 @@ export default class ProductService {
   }
 
   async registerProduct(productData: RegisterProductData): Promise<Product> {
-    const { product, name, description, image, imageMap, price, stockLevel } = productData;
+    const { product, name, description, image, imageMap, price, stockLevel } =
+      productData;
 
     // Cria um novo produto no banco de dados
     const newProduct = await this.prisma.product.create({
-      data: {     
+      data: {
         product,
         name,
         description,
         image,
         imageMap,
         price,
-        stockLevel,       
+        stockLevel,
       },
     });
 
@@ -40,8 +41,11 @@ export default class ProductService {
       where: { id: productId },
     });
   }
-  
-  async updateProduct(productId: number, productData: RegisterProductData): Promise<Product> {
+
+  async updateProduct(
+    productId: number,
+    productData: RegisterProductData
+  ): Promise<Product> {
     const existingProduct = await this.prisma.product.findUnique({
       where: { id: productId },
     });

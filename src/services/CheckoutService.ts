@@ -8,7 +8,6 @@ import PaymentService from "./PaymentService";
 export default class CheckoutService {
   private prisma: PrismaClient;
 
-  // new CheckoutService()
   constructor() {
     this.prisma = new PrismaClient();
   }
@@ -18,8 +17,6 @@ export default class CheckoutService {
     customer: CustomerData,
     payment: PaymentData
   ): Promise<{ id: number; transactionId: string; status: string }> {
-    // TODO: "puxar" os dados de products do BD
-    // in: [1,2,3,4]
     const products = await this.prisma.product.findMany({
       where: {
         id: {
@@ -41,18 +38,15 @@ export default class CheckoutService {
     const customerCreated = await this.createCustomer(customer);
 
     if (customerCreated === null) {
-      // Se o resultado for null, significa que o usuário não existe
       return {
         id: 0,
         transactionId: "",
         status: "Usuário não existe",
       };
     }
-    // TODO: criar uma order orderitem
-    let orderCreated = await this.createOrder(productsInCart, customerCreated);
-    // console.log(`orderCreated`, orderCreated)
 
-    // TODO: processar o pagamento
+    let orderCreated = await this.createOrder(productsInCart, customerCreated);
+
     const { transactionId, status } = await new PaymentService().process(
       orderCreated,
       customerCreated,
@@ -82,7 +76,6 @@ export default class CheckoutService {
     });
 
     if (customerCreated) {
-      // Cliente existe, então atualize os dados
       const updatedCustomer = await this.prisma.customer.update({
         where: { email: customer.email },
         data: customer,
@@ -90,7 +83,6 @@ export default class CheckoutService {
 
       return updatedCustomer;
     } else {
-      // Cliente não existe, retorne null
       return null;
     }
   }

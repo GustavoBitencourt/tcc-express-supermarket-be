@@ -223,8 +223,8 @@ app.get("/customers/:id", async (req: Request, res: Response) => {
 });
 
 app.put("/customer/:id", async (req: Request, res: Response) => {
-  const { id } = req.params; 
-  const updatedCustomerData = req.body; 
+  const { id } = req.params;
+  const updatedCustomerData = req.body;
 
   try {
     const updatedCustomer = await prisma.customer.update({
@@ -272,7 +272,7 @@ app.post("/reset-password", async (req: Request, res: Response) => {
 
 app.get("/orders/customerId/:id", async (req: Request, res: Response) => {
   const { id } = req.params;
-  
+
   try {
     const customerId = parseInt(id, 10);
 
@@ -283,11 +283,13 @@ app.get("/orders/customerId/:id", async (req: Request, res: Response) => {
     const orders = await prisma.order.findMany({
       where: { customerId: customerId },
       include: { customer: true, orderItems: { include: { product: true } } },
-      orderBy: { updatedAt: 'desc' },
+      orderBy: { updatedAt: "desc" },
     });
 
     if (orders.length === 0) {
-      return res.status(404).json({ message: "No orders found for this customer" });
+      return res
+        .status(404)
+        .json({ message: "No orders found for this customer" });
     }
 
     res.json(orders);
