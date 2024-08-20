@@ -59,6 +59,8 @@ model Order {
   status        OrderStatus @default(PENDING)
   total         Decimal     @db.Decimal(10, 2)
   transactionId String?     @db.VarChar(255)
+  paymentMethod  String?     @db.VarChar(255)
+  shippingMethod String?     @db.VarChar(255)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   customer      Customer    @relation(fields: [customerId], references: [id])

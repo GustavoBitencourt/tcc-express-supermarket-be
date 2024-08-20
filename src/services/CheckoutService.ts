@@ -15,7 +15,9 @@ export default class CheckoutService {
   async process(
     cart: ProductData[],
     customer: CustomerData,
-    payment: PaymentData
+    payment: PaymentData,
+    paymentMethod: string,
+    shippingMethod: string
   ): Promise<{ id: number; transactionId: string; status: string }> {
     const products = await this.prisma.product.findMany({
       where: {
@@ -45,7 +47,12 @@ export default class CheckoutService {
       };
     }
 
-    let orderCreated = await this.createOrder(productsInCart, customerCreated);
+    let orderCreated = await this.createOrder(
+      productsInCart,
+      customerCreated,
+      paymentMethod,
+      shippingMethod
+    );
 
     const { transactionId, status } = await new PaymentService().process(
       orderCreated,
@@ -89,7 +96,9 @@ export default class CheckoutService {
 
   private async createOrder(
     productsInCart: ProductData[],
-    customer: Customer
+    customer: Customer,
+    paymentMethod: string,
+    shippingMethod: string
   ): Promise<Order> {
     const total = productsInCart.reduce(
       (acc, product) => acc + product.subTotal,
@@ -98,6 +107,8 @@ export default class CheckoutService {
     const orderCreated = await this.prisma.order.create({
       data: {
         total,
+        paymentMethod,
+        shippingMethod,
         customer: {
           connect: { id: customer.id },
         },

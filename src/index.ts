@@ -169,16 +169,20 @@ interface CheckoutRequest extends Request {
     cart: ProductData[];
     customer: CustomerData;
     payment: PaymentData;
+    paymentMethod: string;
+    shippingMethod: string;
   };
 }
 
 app.post("/checkout", async (req: CheckoutRequest, res: Response) => {
-  const { cart, customer, payment } = req.body;
+  const { cart, customer, payment, paymentMethod, shippingMethod } = req.body;
 
   const orderCreated = await new CheckoutService().process(
     cart,
     customer,
-    payment
+    payment,
+    paymentMethod,
+    shippingMethod
   );
 
   res.send(orderCreated);
